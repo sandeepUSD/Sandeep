@@ -1,1 +1,1 @@
-# Sandeep
+# Image Detection Project
