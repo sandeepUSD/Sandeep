@@ -10,6 +10,22 @@ from PIL import Image, ImageStat
 from collections import Counter
 
 
+# Color detection thresholds
+COLOR_BRIGHT_THRESHOLD = 200
+COLOR_HIGH_THRESHOLD = 150
+COLOR_MID_THRESHOLD = 100
+COLOR_LOW_THRESHOLD = 50
+
+# Edge detection threshold
+EDGE_DETECTION_THRESHOLD = 30
+
+# Brightness classification thresholds
+BRIGHTNESS_VERY_BRIGHT = 200
+BRIGHTNESS_BRIGHT = 150
+BRIGHTNESS_MODERATE = 100
+BRIGHTNESS_DIM = 50
+
+
 class SimpleImageDetector:
     """
     A simple image detection system that analyzes image properties.
@@ -77,25 +93,25 @@ class SimpleImageDetector:
         r, g, b = rgb
         
         # Simple color naming based on dominant channel
-        if r > 200 and g > 200 and b > 200:
+        if r > COLOR_BRIGHT_THRESHOLD and g > COLOR_BRIGHT_THRESHOLD and b > COLOR_BRIGHT_THRESHOLD:
             return "White/Light"
-        elif r < 50 and g < 50 and b < 50:
+        elif r < COLOR_LOW_THRESHOLD and g < COLOR_LOW_THRESHOLD and b < COLOR_LOW_THRESHOLD:
             return "Black/Dark"
-        elif r > 150 and g < 100 and b < 100:
+        elif r > COLOR_HIGH_THRESHOLD and g < COLOR_MID_THRESHOLD and b < COLOR_MID_THRESHOLD:
             return "Red"
-        elif r < 100 and g > 150 and b < 100:
+        elif r < COLOR_MID_THRESHOLD and g > COLOR_HIGH_THRESHOLD and b < COLOR_MID_THRESHOLD:
             return "Green"
-        elif r < 100 and g < 100 and b > 150:
+        elif r < COLOR_MID_THRESHOLD and g < COLOR_MID_THRESHOLD and b > COLOR_HIGH_THRESHOLD:
             return "Blue"
-        elif r > 150 and g > 150 and b < 100:
+        elif r > COLOR_HIGH_THRESHOLD and g > COLOR_HIGH_THRESHOLD and b < COLOR_MID_THRESHOLD:
             return "Yellow"
-        elif r > 150 and g < 100 and b > 150:
+        elif r > COLOR_HIGH_THRESHOLD and g < COLOR_MID_THRESHOLD and b > COLOR_HIGH_THRESHOLD:
             return "Magenta"
-        elif r < 100 and g > 150 and b > 150:
+        elif r < COLOR_MID_THRESHOLD and g > COLOR_HIGH_THRESHOLD and b > COLOR_HIGH_THRESHOLD:
             return "Cyan"
-        elif r > 100 and g > 100 and b > 100:
+        elif r > COLOR_MID_THRESHOLD and g > COLOR_MID_THRESHOLD and b > COLOR_MID_THRESHOLD:
             return "Gray"
-        elif r > 150 and g > 100 and b < 100:
+        elif r > COLOR_HIGH_THRESHOLD and g > COLOR_MID_THRESHOLD and b < COLOR_MID_THRESHOLD:
             return "Orange/Brown"
         else:
             return "Mixed"
@@ -113,6 +129,27 @@ class SimpleImageDetector:
         stat = ImageStat.Stat(image)
         # Average of R, G, B
         return sum(stat.mean) / 3
+    
+    def _classify_brightness(self, brightness):
+        """
+        Classify brightness level into human-readable categories.
+        
+        Args:
+            brightness (float): Brightness value (0-255)
+            
+        Returns:
+            str: Brightness classification
+        """
+        if brightness > BRIGHTNESS_VERY_BRIGHT:
+            return "Very Bright"
+        elif brightness > BRIGHTNESS_BRIGHT:
+            return "Bright"
+        elif brightness > BRIGHTNESS_MODERATE:
+            return "Moderate"
+        elif brightness > BRIGHTNESS_DIM:
+            return "Dim"
+        else:
+            return "Very Dark"
     
     def detect_edges(self, image):
         """
@@ -133,7 +170,7 @@ class SimpleImageDetector:
         dy = np.diff(pixels, axis=0)
         
         # Calculate edge density
-        edge_pixels = (np.abs(dx) > 30).sum() + (np.abs(dy) > 30).sum()
+        edge_pixels = (np.abs(dx) > EDGE_DETECTION_THRESHOLD).sum() + (np.abs(dy) > EDGE_DETECTION_THRESHOLD).sum()
         total_pixels = pixels.size
         
         return edge_pixels / total_pixels
@@ -188,16 +225,7 @@ class SimpleImageDetector:
             print(f"  Brightness: {results['brightness']:.1f}/255")
             
             # Classify brightness
-            if results['brightness'] > 200:
-                brightness_class = "Very Bright"
-            elif results['brightness'] > 150:
-                brightness_class = "Bright"
-            elif results['brightness'] > 100:
-                brightness_class = "Moderate"
-            elif results['brightness'] > 50:
-                brightness_class = "Dim"
-            else:
-                brightness_class = "Very Dark"
+            brightness_class = self._classify_brightness(results['brightness'])
             print(f"  Brightness Level: {brightness_class}")
             
             # Edge density / complexity

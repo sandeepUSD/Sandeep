@@ -1,5 +1,5 @@
 """
-Simple Image Detection System
+Advanced Image Detection System
 Uses MobileNetV2 pre-trained on ImageNet for object detection/classification
 """
 
